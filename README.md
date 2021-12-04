@@ -8,4 +8,4 @@ partials are included in pages
 
 partials contains head, header, footer, scripts
 
-to run portal start sprint1.py and open and terminal in the folder and type "npm i" and then "npm start"
+to run portal start sprint1.py and open a terminal in the folder and type "npm i" and then "npm start"
