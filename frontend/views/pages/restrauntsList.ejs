@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body>
+
+    <header>
+        <%- include('../partials/header'); %>
+    </header>
+
+    <main class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-info" role="alert" style="display: none;">
+                    Selected Restraunt : <b id="data"></b>
+                </div>
+                <div class="alert alert-success" role="alert" style="display: none;">
+                    Restraunt deleted!
+                </div>
+
+                <div class="alert alert-danger" role="alert" style="display: none;">
+                    Error!
+                </div>
+                <div class="">
+                    <div class="d-flex justify-content-between">
+                        <h3>Restraunts</h3>
+                        <button type="button" id="select" class="btn btn-primary">
+                            Select Restraunt
+                        </button>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col">
+                            <table id="table_id" class="display">
+                                <thead>
+                                    <tr>
+                                        <th>Restraunt</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/foot'); %>
+
+        <script>
+            //  this function will call on click of delete icon button
+            function deleteRestraunt(e) {
+                console.log(e.id)
+                let url1 = 'http://127.0.0.1:5000/api/deleteRestaurant'
+                axios.post(url1, {
+                    // headers: {
+                    //     'Accept': '*/*',
+                    //     'Content-Type': 'application/json',
+                    // },
+                    body: {
+                        "restaurantname": e.id,
+                    }
+                })
+                    .then(response => {
+                        console.log(response.data)
+                        $(".alert-danger").hide()
+                        $(".alert-success").show()
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000)
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        $(".alert-danger").show()
+                        $(".alert-success").hide()
+                    })
+
+                // $("#exampleModal").modal().show()
+            }
+
+            $(document).ready(function () {
+                let url = 'http://127.0.0.1:5000/api/restaurantList'
+
+                //  getting restraunts data
+                axios.get(url)
+                    .then(response => {
+                        console.log(response.data)
+                        let htmlStr = ""
+                        //  mapping the data in table 
+                        response.data.forEach((item, index) => {
+                            htmlStr += `
+                                <tr>
+                                    <td>
+                                        ${item.restaurantname}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-start">
+                                            <a onclick="deleteRestraunt(this)" class="deleteRestraunt" id="${item.restaurantname}"
+                                                style="color:red;margin-left: 30px;"><i
+                                                    class="fas fa-trash"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `
+                        })
+                        //  appending html string in the table body
+                        $("tbody").append(htmlStr)
+                        $('#table_id').DataTable();
+
+                    })
+                    .catch(err => {
+                        console.log("err -> ", err)
+                    })
+
+                $("#select").click(function () {
+                    let url = 'http://127.0.0.1:5000/api/selectRestaurant'
+                    let userID = localStorage.getItem("userID");
+
+                    //  getting restraunts data
+                    axios.post(url,{
+                        body: { userid: parseInt(userID)}
+                    })
+                        .then(response => {
+                            console.log(response.data)
+                            $("#data").html(response.data.response.restaurantname)
+                            $(".alert-danger").hide()
+                            $(".alert-info").show()
+
+                        })
+                        .catch(err => {
+                            console.log("err -> ", err)
+                            $(".alert-danger").show()
+                            $(".alert-info").hide()
+                        })
+                })
+            });
+        </script>
+
+</body>
+
+</html>

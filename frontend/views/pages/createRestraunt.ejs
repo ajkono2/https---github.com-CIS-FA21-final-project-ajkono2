@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body>
+
+    <header>
+        <%- include('../partials/header'); %>
+    </header>
+
+    <main class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="jumbotron">
+                    <div class="">
+                        <h1 class="text-center">Add Restraunt</h1>
+                        <div class="alert alert-success" role="alert" style="display: none;">
+                            Restraunts Created!
+                        </div>
+                        <div class="alert alert-danger" role="alert" style="display: none;">
+                            Error!
+                        </div>
+                        <div class="alert alert-warning" role="alert">
+                            You are allowed to add minimum 5 restraunts and maximum 10 restraunts.
+                        </div>
+
+                        <!-- <button class="btn btn-outline-secondary btn-sm" id="addRestraunt"> <i class="fas fa-plus"></i> Add New Restraunt</button> -->
+                    </div>
+                    <br>
+                    <form id="submit">
+                        <div id="addRestraunts">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Add Restraunts</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/foot'); %>
+        <script>
+            $(document).ready(function () {
+                let counter = 0;
+                let max = 10;
+                let min = 5;
+                let htmlStr = "";
+                //  making 10 fields for restraunt names
+                for (i = 1; i <= 10; i++) {
+                    if (i <= 5) {
+                        htmlStr += `
+                            <div class="form-group">
+                                <label for="restraunt${i}">Restraunt ${i}</label>
+                                <input type="text" class="form-control" id="restraunt${i}" placeholder="Restraunt${i}" required>
+                            </div>
+                        `
+                    }
+                    else {
+                        htmlStr += `
+                            <div class="form-group">
+                                <label for="restraunt${i}">Restraunt ${i}</label>
+                                <input type="text" class="form-control" id="restraunt${i}" placeholder="Restraunt${i}">
+                            </div>
+                        `
+                    }
+                }
+                $("#addRestraunts").append(htmlStr)
+
+                let url = 'http://127.0.0.1:5000/api/createRestaurant'
+                let userID = localStorage.getItem("userID");
+                // this function will create restraunt one by one
+                function apiCall(array) {
+                    value = array[counter]
+                    if (value !== "") {
+                        axios.post(url, {
+                            body: { restaurantname: value, userid: parseInt(userID) }
+                        })
+                            .then(response => {
+                                console.log(response.data)
+                                counter += 1;
+                                if (counter !== array.length) {
+                                    apiCall(array)
+                                }
+                                else {
+                                    $(".alert-danger").hide()
+                                    $(".alert-success").show()
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 3000)
+                                }
+
+                            })
+                            .catch(err => {
+                                console.log("err -> ", err)
+                                $(".alert-danger").show()
+                                $(".alert-success").hide()
+                            })
+
+
+                    }
+                }
+                $("#submit").submit(function (e) {
+                    e.preventDefault();
+                    let array = new Array()
+                    $(".form-control").each(function (index, e) {
+                        console.log(e.value);
+                        if (e.value) {
+                            array.push(e.value)
+                        }
+                    })
+                    apiCall(array)
+                    // creating restraunts
+                    // console.log($(".form-control"));
+                    // $(".form-control").each(function (index, e) {
+                    //     if (e.value) {
+                    //         console.log(e.value);
+                    //         apiCall(e.value)
+                    //     }
+                    // })
+                })
+            })
+        </script>
+</body>
+
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body>
+
+    <header>
+        <%- include('../partials/header'); %>
+    </header>
+
+    <main class="container">
+        <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Update User</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="update">
+                        <div class="modal-body">
+                            <div class="alert alert-success alert-success-update" role="alert" style="display: none;">
+                                User update!
+                            </div>
+                            <div class="alert alert-danger alert-danger-update" role="alert" style="display: none;">
+                                Error!
+                            </div>
+                            <div class="form-group">
+                                <label for="firstName">First Name</label>
+                                <input type="text" class="form-control" id="firstName" placeholder="First Name"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" placeholder="Last Name" required>
+                            </div>
+                            <div class="form-group" style="display: none;">
+                                <input type="date" class="form-control" id="birthDate" placeholder="Birth Date"
+                                    required>
+                            </div>
+
+                            <br>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <div class="alert alert-success" role="alert" style="display: none;">
+                    User deleted!
+                </div>
+                <div class="alert alert-danger" role="alert" style="display: none;">
+                    Error!
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <h3>Users</h3>
+                    </div>
+                </div>
+                <div class="row mt-5">
+                    <div class="col">
+                        <table id="table_id" class="display">
+                            <thead>
+                                <tr>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Birth Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- <footer>
+  <%- include('../partials/footer'); %>
+</footer> -->
+    <%- include('../partials/foot'); %>
+
+        <script>
+            //  this function will delete user on click of delete icon button 
+            function deleteUser(first, last, date) {
+                console.log(first, last, date)
+                let body = {
+                    firstname: first,
+                    lastname: last,
+                    birthdate: date
+                }
+                let url1 = 'http://127.0.0.1:5000/api/deleteUser'
+                axios.post(url1, {
+                    body: body,
+                })
+                    .then(response => {
+                        $(".alert-danger").hide()
+                        $(".alert-success").show()
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000)
+                    })
+                    .catch(err => {
+                        console.log("err -> ", err)
+                        $(".alert-danger").show()
+                        $(".alert-success").hide()
+                    })
+
+            }
+
+            // this function will run when edit icon button is clicked
+            function editUser(first, last, date) {
+                console.log(first, last, date)
+
+                $("#firstName").val(first)
+                $("#lastName").val(last)
+                $("#birthDate").val(date)
+                $("#exampleModal1").modal().show()
+            }
+
+
+            $(document).ready(function () {
+                let url = 'http://127.0.0.1:5000/api/userlist'
+
+                // getting users list 
+                axios.get(url)
+                    .then(response => {
+                        console.log(response.data)
+                        let htmlStr = ""
+                        response.data.forEach((item, index) => {
+                            htmlStr += `
+                            <tr>
+                                <td>
+                                    ${item.firstname}
+                                </td>
+                                <td>
+                                    ${item.lastname}
+                                </td>
+                                <td>
+                                    ${item.birthdate}
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-start">
+                                        <a onclick="editUser('${item.firstname}','${item.lastname}','${item.birthdate}')"><i class="fas fa-edit"></i></a>
+                                        <a onclick="deleteUser('${item.firstname}','${item.lastname}','${item.birthdate}')" class="deleteUser" id=""
+                                            style="color:red;margin-left: 30px;"><i
+                                                class="fas fa-trash"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        `
+                        })
+                        $("tbody").append(htmlStr)
+                        $('#table_id').DataTable();
+
+                    })
+                    .catch(err => {
+                        console.log("err -> ", err)
+                    })
+
+                $("#update").submit(function (e) {
+                    e.preventDefault();
+                    let body = {
+                        firstname: document.getElementById("firstName").value,
+                        lastname: document.getElementById("lastName").value,
+                        birthdate: document.getElementById("birthDate").value
+                    }
+
+                    //  update first 
+                    axios.post("http://127.0.0.1:5000/api/updateFirst", {
+                        body: body
+                    })
+                        .then(response => {
+                            console.log(response.data)
+
+                            //  update last 
+                            axios.post("http://127.0.0.1:5000/api/updateLast", {
+                                body: body
+                            })
+                                .then(response => {
+                                    console.log(response.data)
+                                    $(".alert-danger-update").hide()
+                                    $(".alert-success-update").show()
+                                    $("#exampleModal1").modal().show()
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 3000)
+                                })
+                                .catch(err => {
+                                    console.log("err -> ", err)
+                                    $(".alert-danger-update").show()
+                                    $(".alert-success-update").hide()
+                                })
+                        })
+                        .catch(err => {
+                            console.log("err -> ", err)
+                            $(".alert-danger-update").show()
+                            $(".alert-success-update").hide()
+                        })
+
+                })
+
+            });
+
+        </script>
+
+</body>
+
+</html>
